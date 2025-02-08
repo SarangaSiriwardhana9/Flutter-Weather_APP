@@ -5,6 +5,7 @@ import '../widgets/weather_info_card.dart';
 import '../widgets/hourly_forecast.dart';
 import '../widgets/daily_forecast.dart';
 import '../services/weather_service.dart';
+import '../widgets/location_search.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,8 +15,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final WeatherService weatherService =
-      WeatherService('c60aebdca18be574a6d0d0618ae45f17');
+  final WeatherService weatherService = WeatherService(
+      'c60aebdca18be574a6d0d0618ae45f17'); // Replace with your API key
   Map<String, dynamic>? weatherData;
   Map<String, dynamic>? forecastData;
   String? errorMessage;
@@ -62,6 +63,62 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _handleLocationSelected(
+      String name, double lat, double lon) async {
+    setState(() {
+      locationName = name;
+      weatherData = null;
+      forecastData = null;
+    });
+    await _fetchWeatherDataByCoordinates(lat, lon);
+  }
+
+  Future<void> _fetchWeatherDataByCoordinates(double lat, double lon) async {
+    try {
+      setState(() {
+        errorMessage = null;
+      });
+
+      // Fetch weather and forecast data for the selected coordinates
+      final weather = await weatherService.getWeather(lat, lon);
+      final forecast = await weatherService.getForecast(lat, lon);
+
+      setState(() {
+        weatherData = weather;
+        forecastData = forecast;
+        locationName = weather['name']; // Update location name
+      });
+    } catch (e) {
+      print('Error fetching weather data: $e');
+      setState(() {
+        errorMessage = 'Failed to fetch weather data. Please try again later.';
+      });
+    }
+  }
+
+  Future<void> _fetchWeatherDataByCity(String city) async {
+    try {
+      setState(() {
+        errorMessage = null;
+      });
+
+      // Fetch weather and forecast data for the selected city
+      final weather = await weatherService.getWeatherByCity(city);
+      final forecast = await weatherService.getForecastByCity(city);
+
+      setState(() {
+        weatherData = weather;
+        forecastData = forecast;
+        locationName = weather['name']; // Update location name
+      });
+    } catch (e) {
+      print('Error fetching weather data: $e');
+      setState(() {
+        errorMessage = 'Failed to fetch weather data. Please try again later.';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,6 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Weather App'),
         actions: [
+          LocationSearch(
+            onLocationSelected: _handleLocationSelected,
+            weatherService: weatherService,
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _fetchWeatherData,
@@ -100,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: Colors.red),
+                              color: Colors.white),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 10),
