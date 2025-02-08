@@ -1,61 +1,60 @@
-// Import necessary Flutter packages and local files
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:geolocator/geolocator.dart';
 import '../widgets/weather_info_card.dart';
 import '../widgets/hourly_forecast.dart';
 import '../widgets/daily_forecast.dart';
 import '../services/weather_service.dart';
 
-// This is the main screen of our weather app
 class HomeScreen extends StatefulWidget {
-  // Constructor for HomeScreen
   const HomeScreen({Key? key}) : super(key: key);
 
-  // Create the mutable state for this widget
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-// This is the state for our HomeScreen
 class _HomeScreenState extends State<HomeScreen> {
-  // Create an instance of WeatherService with API key
   final WeatherService weatherService =
       WeatherService('c60aebdca18be574a6d0d0618ae45f17');
-  // Variables to store weather and forecast data
   Map<String, dynamic>? weatherData;
   Map<String, dynamic>? forecastData;
-  // Variable to store error message if any
   String? errorMessage;
+  String locationName = "Loading...";
 
-  // This method is called when the widget is first created
   @override
   void initState() {
     super.initState();
     _fetchWeatherData();
   }
 
-  // Method to fetch weather data from the API
   Future<void> _fetchWeatherData() async {
     try {
-      // Clear any previous error message
       setState(() {
         errorMessage = null;
       });
 
-      // Fetch current weather and forecast data
-      final weather = await weatherService.getWeather('New York');
-      print('Weather data received: $weather');
+      // Request location permission
+      LocationPermission permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Location permission denied');
+      }
 
-      final forecast = await weatherService.getForecast('New York');
-      print('Forecast data received: $forecast');
+      // Get current position
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
 
-      // Update the state with new data
+      // Fetch weather and forecast data
+      final weather = await weatherService.getWeather(
+          position.latitude, position.longitude);
+      final forecast = await weatherService.getForecast(
+          position.latitude, position.longitude);
+
       setState(() {
         weatherData = weather;
         forecastData = forecast;
+        locationName = weather['name']; // Update location name
       });
     } catch (e) {
-      // If there's an error, update the error message
       print('Error fetching weather data: $e');
       setState(() {
         errorMessage = 'Failed to fetch weather data. Please try again later.';
@@ -63,7 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // This method builds the UI for our home screen
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         const SizedBox(height: 20),
                         Text(
-                          weatherData!['name'],
+                          locationName,
                           style: const TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
