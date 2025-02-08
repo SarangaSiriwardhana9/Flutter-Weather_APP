@@ -1,12 +1,16 @@
+// Import necessary Flutter package
 import 'package:flutter/material.dart';
 
+// This widget displays the main weather information
 class WeatherInfoCard extends StatelessWidget {
+  // Weather details to display
   final String temperature;
   final String condition;
   final String feelsLike;
   final String humidity;
   final String windSpeed;
 
+  // Constructor that requires all weather details
   const WeatherInfoCard({
     Key? key,
     required this.temperature,
@@ -16,6 +20,7 @@ class WeatherInfoCard extends StatelessWidget {
     required this.windSpeed,
   }) : super(key: key);
 
+  // This method builds the UI for our weather info card
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -26,6 +31,7 @@ class WeatherInfoCard extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Display the main temperature
             Text(
               temperature,
               style: const TextStyle(
@@ -33,11 +39,13 @@ class WeatherInfoCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: Colors.white),
             ),
+            // Display the weather condition
             Text(
               condition,
               style: const TextStyle(fontSize: 24, color: Colors.white),
             ),
             const SizedBox(height: 20),
+            // Display additional weather details
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -52,6 +60,7 @@ class WeatherInfoCard extends StatelessWidget {
     );
   }
 
+  // Helper method to build each weather detail
   Widget _buildWeatherDetail(String label, String value) {
     return Column(
       children: [
